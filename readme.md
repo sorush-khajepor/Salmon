@@ -1,7 +1,7 @@
 
 ## Salmon
 
-Salmon is a text editor library written in C++. It is very handy if you need to make the same changes to many files. For example, you want to add a header to 100 CSV files. 
+Salmon is a small text editor library written in C++. It is very handy if you need to make the same changes to many files. For example, you want to add a header to 100 CSV files. 
 
 
 ## Example Code
@@ -49,7 +49,6 @@ int main(){
 
   return 0;
 }
-
 ```
 
 ## Compile
