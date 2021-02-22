@@ -1,14 +1,12 @@
 
 ## Salmon
 
-Salmon is a text editor library written in C++. 
+Salmon is a text editor library written in C++. It is very handy if you need to make the same changes to many files. For example, you want to add a header to 100 CSV files. 
 
-## Example
+
+## Example Code
 
 ```cpp
-#include <iostream>
-#include <vector>
-#include <functional>
 #include <filesystem>
 #include "include/Salmon.h"
 
@@ -53,3 +51,12 @@ int main(){
 }
 
 ```
+
+## Compile
+
+You need CMake to compile Salmon. Clone this repo. To compile the example in a terminal run
+
+```sh
+./build.sh
+```
+
