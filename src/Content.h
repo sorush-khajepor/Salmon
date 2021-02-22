@@ -83,7 +83,6 @@ namespace Salmon
         auto find(std::string str)
         {
             size_t iCol = 0, iLine = 0;
-            bool isFound = false;
 
             for (size_t i = 0; auto &line : data)
             {
@@ -92,7 +91,6 @@ namespace Salmon
                 {
                     iCol = pos + 1;
                     iLine = i + 1;
-                    isFound = true;
                     break;
                 }
                 i++;
