@@ -1,13 +1,13 @@
-[![Build Status](https://travis-ci.com/sorush-khajepor/CppExamples.svg?branch=main)](https://travis-ci.com/sorush-khajepor/CppExamples)
 
-A template for examples
 
 Salmon is a small text editor library written in C++. It is very handy if you need to make the same changes to many files. For example, you want to add a header to 100 CSV files. 
 
-
-## Example Code
+## Example
 
 ```cpp
+#include <iostream>
+#include <vector>
+#include <functional>
 #include <filesystem>
 #include "include/Salmon.h"
 
@@ -60,4 +60,4 @@ You need CMake to compile Salmon. Clone this repo. To compile the example in a t
 ./build.sh
 ```
 
-=======
+

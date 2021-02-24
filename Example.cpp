@@ -1,3 +1,6 @@
+#include <iostream>
+#include <vector>
+#include <functional>
 #include <filesystem>
 #include "include/Salmon.h"
 
