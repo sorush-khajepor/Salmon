@@ -1,5 +1,6 @@
 #directories to ignore
 build/
+myexample/
 
 # Prerequisites
 *.d
