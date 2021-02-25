@@ -1,10 +1,8 @@
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
 #include <functional>
 #include <filesystem>
-//#include <ranges>
+
 
 namespace Salmon
 {
@@ -61,7 +59,7 @@ namespace Salmon
             DeleteLine(iLines);
         }
 
-        auto InsertLine(std::string line, int iLine)
+        auto InsertLine(int iLine, std::string line)
         {
             lines.insert(getDataIter(iLine), line);
         }
@@ -102,13 +100,13 @@ namespace Salmon
             lines[iLine-1].erase(iCol-1);
             InsertText(iLine, iCol, clipboard[0]);
             for(size_t i=1;i<clipboard.size()-1;i++){
-                InsertLine(clipboard[i], iLine+i);
+                InsertLine(iLine+i, clipboard[i]);
             }
             auto last = iLine+clipboard.size()-1;
             if (lines.size()>= last){
                 InsertText(last, 1, clipboard.back());
             } else{
-                InsertLine(clipboard.back(),last);
+                InsertLine(last, clipboard.back());
             }
             AppendText(lines.size(), rest);
         }

@@ -24,7 +24,7 @@ int main(){
 
   // Editing lines
   editor.content.AppendLine("I like haggis.");
-  editor.content.InsertLine("I am looking forward to summer.", 3);
+  editor.content.InsertLine(3, "I am looking forward to summer.");
   editor.content.ReplaceLine(2, "A usual rainy day in Edinburgh.");
   editor.content.DeleteLine(1);
 
