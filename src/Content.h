@@ -1,8 +1,9 @@
 #include <string>
 #include <vector>
+#include <span>
+#include <ranges>
 #include <functional>
 #include <filesystem>
-
 
 namespace Salmon
 {
@@ -18,32 +19,48 @@ namespace Salmon
             lines.clear();
         }
 
-        auto begin() { return lines.begin(); }
+        decltype(auto) begin() { return lines.begin(); }
 
-        auto end() { return lines.end(); }
+        decltype(auto) end() { return lines.end(); }
 
-        auto getDataIter(int iLine)
+        auto GetPos(const size_t& iLineOrCol)
         {
-            return lines.begin() + iLine - 1;
+            return iLineOrCol - 1;
         }
 
-        auto StartsWith(std::string line)
+        auto GetPos(const size_t& iLine, const size_t& iCol)
+        {
+            return std::tuple<size_t, size_t>(GetPos(iLine), GetPos(iCol));
+        }
+
+        auto getLinesIter(const size_t& iLine)
+        {
+            return lines.begin() + GetPos(iLine);
+        }
+
+        auto &GetLine(size_t iLine)
+        {
+            return lines[GetPos(iLine)];
+        }
+
+        auto StartsWith(const std::string& line)
         {
             return lines[0].rfind(line, 0) == 0;
         }
 
         auto AppendLine(std::string line)
         {
-            lines.push_back(line);
+            lines.push_back(std::move(line));
         }
+
         auto ReplaceLine(int iLine, std::string line)
         {
-            lines[iLine - 1] = line;
+            GetLine(iLine) = std::move(line);
         }
 
         auto DeleteLine(int iLine)
         {
-            lines.erase(getDataIter(iLine));
+            lines.erase(getLinesIter(iLine));
         }
 
         auto DeleteLine(std::vector<size_t> iLines)
@@ -56,59 +73,109 @@ namespace Salmon
         auto DeleteLine(std::initializer_list<size_t> iLinesList)
         {
             std::vector<size_t> iLines = iLinesList;
-            DeleteLine(iLines);
+            DeleteLine(std::move(iLines));
         }
 
-        auto InsertLine(int iLine, std::string line)
+        auto InsertLine(size_t iLine, std::string line)
         {
-            lines.insert(getDataIter(iLine), line);
+            lines.insert(getLinesIter(iLine), std::move(line));
+        }
+
+        auto InsertLines(size_t iLine, std::vector<std::string> lines)
+        {
+            for (auto &line : lines | std::views::reverse)
+                InsertLine(iLine, std::move(line));
+        }
+
+        auto InsertLines(size_t iLine, std::span<std::string> lines)
+        {
+            for (auto &line : lines | std::views::reverse)
+                InsertLine(iLine, line);
         }
 
         auto AppendText(size_t iLine, std::string word)
         {
-            lines[iLine - 1].append(word);
+            GetLine(iLine).append(std::move(word));
         }
 
         auto DeleteText(size_t iLine, size_t iCol, size_t lenght)
         {
-            lines[iLine - 1].erase(iCol - 1, lenght);
+            GetLine(iLine).erase(GetPos(iCol), lenght);
         }
 
         auto InsertText(size_t iLine, size_t iCol, std::string word)
         {
-            lines[iLine - 1].insert(iCol - 1, word);
+            GetLine(iLine).insert(GetPos(iCol), std::move(word));
         }
 
         auto ReplaceText(size_t iLine, size_t iCol, size_t length, std::string word)
         {
-            lines[iLine - 1].replace(iCol - 1, length, word);
+            GetLine(iLine).replace(GetPos(iCol), length, std::move(word));
         }
 
-        auto Copy(size_t iFromLine, size_t iFromCol, size_t iToLine, size_t iToCol )
+        auto LineSubStr(size_t iLine, size_t iFromCol, size_t length)
+        {
+            return GetLine(iLine).substr(GetPos(iFromCol), length);
+        }
+
+        auto LineSubStr(size_t iLine, size_t iFromCol)
+        {
+            return LineSubStr(iLine, iFromCol, GetLine(iLine).size());
+        }
+
+        auto InlineCopy(size_t iLine, size_t iFromCol, size_t iToCol)
         {
             clipboard.clear();
-            clipboard.push_back(lines[iFromLine-1].substr(iFromCol-1));
-            for(size_t iLine=iFromLine+1;iLine<iToLine;iLine++){
-                clipboard.push_back(lines[iLine]);
-            }
-            clipboard.push_back(lines[iToLine-1].substr(0, iToCol));
-                
+            clipboard.push_back(LineSubStr(iLine, iFromCol, iToCol - iFromCol + 1));
         }
+
+        auto MultiLineCopy(size_t iFromLine, size_t iFromCol, size_t iToLine, size_t iToCol)
+        {
+            clipboard.clear();
+            clipboard.push_back(LineSubStr(iFromLine, iFromCol));
+            for (size_t iLine = iFromLine + 1; iLine < iToLine; iLine++)
+            {
+                clipboard.push_back(GetLine(iLine));
+            }
+            clipboard.push_back(LineSubStr(iToLine, 1, iToCol));
+        }
+
+        auto Copy(size_t iFromLine, size_t iFromCol, size_t iToLine, size_t iToCol)
+        {
+            if (iFromLine == iToLine)
+                InlineCopy(iFromLine, iFromCol, iToCol);
+            else
+                MultiLineCopy(iFromLine, iFromCol, iToLine, iToCol);
+        }
+
+        auto PasteInline(size_t iLine, size_t iCol)
+        {
+            InsertText(iLine, iCol, clipboard[0]);
+        }
+
+        auto PasteMultiLine(size_t iLine, size_t iCol)
+        {
+
+            auto rest = LineSubStr(iLine, iCol);
+            GetLine(iLine).erase(GetPos(iCol));
+
+            InsertText(iLine, iCol, clipboard[0]);
+
+            InsertLines(iLine + 1, std::span(&clipboard[1], clipboard.size() - 2));
+
+            auto iLast = iLine + clipboard.size() - 1;
+
+            InsertLine(iLast, clipboard.back());
+
+            AppendText(iLast, std::move(rest));
+        }
+
         auto Paste(size_t iLine, size_t iCol)
         {
-            auto rest = lines[iLine-1].substr(iCol-1);
-            lines[iLine-1].erase(iCol-1);
-            InsertText(iLine, iCol, clipboard[0]);
-            for(size_t i=1;i<clipboard.size()-1;i++){
-                InsertLine(iLine+i, clipboard[i]);
-            }
-            auto last = iLine+clipboard.size()-1;
-            if (lines.size()>= last){
-                InsertText(last, 1, clipboard.back());
-            } else{
-                InsertLine(last, clipboard.back());
-            }
-            AppendText(lines.size(), rest);
+            if (clipboard.size() < 2)
+                PasteInline(iLine, iCol);
+            else
+                PasteMultiLine(iLine, iCol);
         }
 
         auto find(std::string str)
@@ -131,7 +198,6 @@ namespace Salmon
 
         auto FindReplace(std::string old, std::string fresh)
         {
-
             auto [iLine, iCol] = find(old);
             if (iLine > 0 && iCol > 0)
             {
