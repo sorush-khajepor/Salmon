@@ -2,8 +2,6 @@
 #include <vector>
 #include <span>
 #include <ranges>
-#include <functional>
-#include <filesystem>
 
 namespace Salmon
 {
